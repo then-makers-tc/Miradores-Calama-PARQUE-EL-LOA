@@ -3,8 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <title>Avatar RA con Audio</title>
+
+    <!-- Librerías A-Frame y MindAR -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
     <style>
       body { margin: 0; overflow: hidden; }
       #container { width: 100vw; height: 100vh; }
@@ -19,14 +22,16 @@
         embedded
         renderer="colorManagement: true; logarithmicDepthBuffer: true;"
       >
+        <!-- Precarga de recursos -->
         <a-assets>
           <a-asset-item id="avatarModel" src="avatar.glb"></a-asset-item>
-          <audio id="avatarAudio" src="audio.mp3"></audio>
+          <audio id="avatarAudio" src="audio.mp3" preload="auto"></audio>
         </a-assets>
 
         <a-camera position="0 0 0"></a-camera>
 
-        <a-entity mindar-image-target="targetIndex: 0">
+        <!-- Entidad con el marcador -->
+        <a-entity mindar-image-target="targetIndex: 0" id="markerTarget">
           <a-gltf-model 
             src="#avatarModel" 
             position="0 0 0" 
@@ -34,29 +39,34 @@
             rotation="0 0 0"
           ></a-gltf-model>
 
+          <!-- Entidad de audio -->
           <a-entity 
             sound="src: #avatarAudio; autoplay: false; loop: false; volume: 1"
             id="audioPlayer"
           ></a-entity>
         </a-entity>
-
-        <script>
-          AFRAME.registerComponent('play-audio-on-detect', {
-            init: function () {
-              const el = this.el;
-              const audioEntity = document.querySelector('#audioPlayer');
-              el.addEventListener('targetFound', () => {
-                audioEntity.components.sound.playSound();
-              });
-              el.addEventListener('targetLost', () => {
-                audioEntity.components.sound.stopSound();
-              });
-            }
-          });
-
-          document.querySelector('[mindar-image-target]').setAttribute('play-audio-on-detect', '');
-        </script>
       </a-scene>
     </div>
+
+    <!-- Script para controlar el audio -->
+    <script>
+      AFRAME.registerComponent('play-audio-on-detect', {
+        init: function () {
+          const audioEntity = document.querySelector('#audioPlayer');
+          this.el.addEventListener('targetFound', () => {
+            audioEntity.components.sound.playSound();
+          });
+          this.el.addEventListener('targetLost', () => {
+            audioEntity.components.sound.stopSound();
+          });
+        }
+      });
+
+      // Esperar a que la escena cargue antes de asignar el componente
+      window.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('#markerTarget').setAttribute('play-audio-on-detect', '');
+      });
+    </script>
   </body>
 </html>
+
